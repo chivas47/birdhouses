@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Bird house">
+  <rect width="512" height="512" rx="112" fill="#15614a"/>
+  <path d="M256 78 92 210h40v186a20 20 0 0 0 20 20h208a20 20 0 0 0 20-20V210h40L256 78Z" fill="#f6f2e7"/>
+  <circle cx="256" cy="252" r="52" fill="#15614a"/>
+  <rect x="244" y="304" width="24" height="66" rx="12" fill="#15614a"/>
+  <path d="M256 78 92 210h40l124-99 124 99h40L256 78Z" fill="#c8792f"/>
+  <path d="M198 402h116v34H198z" fill="#e2ded1"/>
+</svg>
