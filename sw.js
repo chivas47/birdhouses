@@ -1,7 +1,7 @@
 /* Service worker: keeps the app usable without internet.
    Map pictures are cached as they are looked at, so places you
    have already visited still show up when you are offline. */
-var VERSION = 'v1';
+var VERSION = 'v2';
 var SHELL = 'birdhouses-shell-' + VERSION;
 var TILES = 'birdhouses-tiles-' + VERSION;
 var TILE_LIMIT = 400;
