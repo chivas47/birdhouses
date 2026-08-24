@@ -15,7 +15,7 @@
       houses: [],
       sightings: [],
       maintenance: [],
-      settings: { lang: null, layer: 'streets', lastCenter: null }
+      settings: { lang: null, textSize: 'normal', layer: 'streets', lastCenter: null }
     };
   };
 

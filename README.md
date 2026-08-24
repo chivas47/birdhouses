@@ -1,11 +1,12 @@
-# My Bird Houses 🐦
+# Meine Nistkästen 🐦
 
 A very simple web app for keeping track of nest boxes: where they are, what they
 look like, which birds use them, and when they were last cleaned or repaired.
 
-It is built for someone who is **not comfortable with phones and computers**:
-big buttons, one question per screen, plain words, no accounts, no passwords,
-nothing to install. It works on a phone first, and on a tablet or computer too.
+It is built for **an older person in Germany who is not comfortable with phones
+and computers**: it opens in German, with big buttons, one question per screen,
+plain words, no accounts, no passwords and nothing to install. It works on a
+phone first, and on a tablet or computer too.
 
 ---
 
@@ -16,11 +17,13 @@ nothing to install. It works on a phone first, and on a tablet or computer too.
 | 🗺️ **Map** | Every bird house is a pin on the map. Pin colour shows how the box is doing: green = good, yellow = needs a repair, red = broken, grey = not sure. Tap a pin to open it. There is a satellite view, which makes finding a particular tree much easier. |
 | ➕ **Adding one** | A four step wizard: move the map so the pin is on the box (or tap *Use my location*) → take a photo of the tree → give it a name → done. |
 | 📷 **Photos** | Photos of the tree, taken straight from the phone camera. Several per bird house. They are shrunk down before being saved so the phone does not fill up. |
-| 🐦 **Birds** | For each box, record which bird was seen, in which **month and year**, and what it was doing (nesting / just visiting / sleeping inside). 19 common nest box birds to pick from — with pictures, so no typing — plus *Another bird* for anything else. |
+| 🐦 **Birds** | For each box, record which bird was seen, in which **month and year**, and what it was doing (nesting / just visiting / sleeping inside). **104 birds and other lodgers found in Germany** to pick from — with pictures, so no typing at all is needed — plus *Anderer Vogel* for anything else. |
 | 🔧 **Condition** | Every box has a state: good, needs a repair, broken or gone, not sure. |
 | 🧰 **Maintenance** | Record cleaning, repairs, replacements or just a look. The app remembers the date and can update the box's condition at the same time. |
 | 📊 **Numbers** | How many boxes there are, how many were used by birds this year, how many need attention, how many were cleaned. Plus the most common birds, the months birds were seen in, and a list of the boxes to go and look at (broken, needing repair, or not cleaned for over a year). |
-| 🇬🇧 🇵🇹 **Two languages** | English and Portuguese, chosen on the first screen and changeable in Settings. |
+| 🔎 **Finding a bird** | Birds already written down come first, then the fourteen commonest; the rest are folded away by group (nest box nesters, woodpeckers, garden and woodland birds, large birds and birds of prey, water birds, other guests). A search box finds a bird by name in any of the three languages, and understands everyday names too — *Spatz*, *Dompfaff*, *Distelfink*, *Eule*, *Greifvogel*. |
+| 🔠 **Text size** | *Einstellungen → Schriftgröße → Groß* makes the whole app — buttons and all — a size larger. |
+| 🇩🇪 🇬🇧 🇵🇹 **Three languages** | The app starts in **German** every time, with nothing to choose first. English and Portuguese are in Settings, for anyone else who picks up the phone. |
 
 ---
 
@@ -77,7 +80,8 @@ index.html               the whole app is one page
 manifest.webmanifest     lets the phone install it to the home screen
 sw.js                    makes it work without internet
 assets/css/app.css       all the styling
-assets/js/i18n.js        every visible word, in English and Portuguese, plus the bird list
+assets/js/i18n.js        every visible word, in German, English and Portuguese,
+                         plus the list of birds
 assets/js/store.js       bird houses, sightings and maintenance records
 assets/js/photos.js      shrinking and storing photos
 assets/js/map.js         the map itself (written from scratch, see below)
@@ -100,3 +104,27 @@ never leave the owner staring at a blank map.
 Map tiles © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors.
 Satellite imagery © Esri, Maxar, Earthstar Geographics.
 Both are shown in the corner of the map, as their terms require.
+
+---
+
+## The bird list
+
+`assets/js/i18n.js` holds every bird in one array. An entry looks like this:
+
+```js
+{ id: 'nuthatch', g: 'common', de: 'Kleiber', en: 'Nuthatch', pt: 'Trepadeira-azul',
+  c: ['#6f8fb5', '#5d7ea6', '#f2e2c9'] }
+```
+
+* `id` is what gets written into a saved sighting, so **existing ids are never
+  renamed** — renaming one would orphan the records already on someone's phone.
+* `g` decides which group the bird appears under: `common`, `nest`, `specht`,
+  `garden`, `big`, `water`, `other`.
+* `c` is the three colours of the little drawn bird — body, head, cheek. Use `e`
+  with an emoji instead for the ones a drawn songbird would misrepresent: owls,
+  birds of prey, ducks, bats, bees.
+
+Everyday German names that are not the book name live in the `ALT` table just
+below the array, and are searched alongside the three official names.
+
+To add a bird, add one line. Nothing else needs changing.

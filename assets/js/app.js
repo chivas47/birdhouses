@@ -106,6 +106,14 @@
       '</svg>';
   }
 
+  /* marks one button in a group as the chosen one, without redrawing
+     the screen — redrawing would throw the reader back to the top */
+  function pressOnly(container, chosen) {
+    $$('[aria-pressed]', container).forEach(function (b) {
+      b.setAttribute('aria-pressed', String(b === chosen));
+    });
+  }
+
   function pinSVG() {
     return '<svg viewBox="0 0 32 44" aria-hidden="true">' +
       '<path class="pin-body" d="M16 0C7.7 0 1 6.7 1 15c0 11 15 29 15 29s15-18 15-29c0-8.3-6.7-15-15-15Z"/>' +
@@ -182,12 +190,16 @@
 
   var mainMap = null, meMarker = null;
 
+  /* until the first bird house is placed, the map opens over Germany */
+  var GERMANY = { lat: 51.16, lng: 10.45 };
+  var GERMANY_ZOOM = 6;
+
   function ensureMainMap() {
     if (mainMap) return mainMap;
-    var start = Store.settings.lastCenter || { lat: 39.5, lng: -8.0 };
+    var start = Store.settings.lastCenter || GERMANY;
     mainMap = new MiniMap($('#map'), {
       center: start,
-      zoom: Store.settings.lastCenter ? 16 : 5,
+      zoom: Store.settings.lastCenter ? 16 : GERMANY_ZOOM,
       layer: Store.settings.layer || 'streets',
       onMove: function (c) {
         Store.settings.lastCenter = c;
@@ -353,10 +365,10 @@
 
   function ensurePickMap() {
     if (pickMap) { pickMap.render(); return pickMap; }
-    var c = Store.settings.lastCenter || { lat: 39.5, lng: -8.0 };
+    var c = Store.settings.lastCenter || GERMANY;
     pickMap = new MiniMap($('#pickMap'), {
       center: c,
-      zoom: Store.settings.lastCenter ? 17 : 5,
+      zoom: Store.settings.lastCenter ? 17 : GERMANY_ZOOM,
       layer: Store.settings.layer || 'streets'
     });
     $('#pickAttribution').innerHTML = pickMap.attribution();
@@ -378,11 +390,11 @@
   function renderWizCondition() {
     var box = $('#wizCondition');
     box.innerHTML = '';
-    box.appendChild(conditionChoices(wiz.condition, function (c) { wiz.condition = c; renderWizCondition(); }));
+    box.appendChild(conditionChoices(wiz.condition, function (c) { wiz.condition = c; }));
   }
 
   function conditionChoices(current, onPick) {
-    var f = frag();
+    var grid = el('div', 'choice-grid');
     Store.CONDITIONS.forEach(function (c) {
       var b = el('button', 'choice');
       b.type = 'button';
@@ -395,10 +407,10 @@
       txt.appendChild(el('span', 'choice-sub', t(CONDITION_LABEL[c] + '.sub')));
       b.appendChild(txt);
       b.appendChild(el('span', 'tick', '✓'));
-      b.addEventListener('click', function () { onPick(c); });
-      f.appendChild(b);
+      b.addEventListener('click', function () { pressOnly(grid, b); onPick(c); });
+      grid.appendChild(b);
     });
-    return f;
+    return grid;
   }
 
   function renderNameSuggestions() {
@@ -408,7 +420,7 @@
     Store.data.houses.forEach(function (h) { if (h.tree) used[h.tree] = true; });
     var base = Object.keys(used).slice(0, 4);
     var n = Store.data.houses.length + 1;
-    var suggestions = [t('nav.houses') + ' ' + n];
+    var suggestions = [t('wiz.suggest', { n: n })];
     base.forEach(function (b) { suggestions.push(b + ' ' + n); });
     suggestions.slice(0, 4).forEach(function (s) {
       var c = el('button', 'chip', s);
@@ -732,30 +744,168 @@
     pushScreen({ title: t('bird.title'), build: function () { return buildBirdForm(houseId, draft); } });
   }
 
+  /* Which birds this person has already written down, anywhere. Their own
+     birds come back year after year, so these belong at the very top. */
+  function recentSpecies(limit) {
+    var seen = {}, out = [];
+    Store.data.sightings.slice()
+      .sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); })
+      .forEach(function (s) {
+        var def = I18N.speciesDef(s.species);
+        if (!def || def.id === 'other' || seen[def.id]) return;
+        seen[def.id] = true;
+        out.push(def);
+      });
+    return out.slice(0, limit || 8);
+  }
+
   function buildBirdForm(houseId, d) {
-    var box = frag();
+    var box = el('div');
+
+    /* ---------- which bird ---------- */
 
     box.appendChild(el('h3', 'q', t('bird.which')));
-    var grid = el('div', 'species-grid');
-    I18N.SPECIES.forEach(function (sp) {
-      var b = el('button', 'species-btn');
+
+    /* the chosen bird stays in sight at the top, so it is never a guess */
+    var chosen = el('div', 'chosen-bird');
+    box.appendChild(chosen);
+
+    function drawChosen() {
+      chosen.innerHTML = '';
+      chosen.hidden = !d.species;
+      if (!d.species) return;
+      var ic = el('span');
+      ic.innerHTML = birdIconHTML(d.species, 40);
+      chosen.appendChild(ic);
+      var txt = el('span');
+      txt.appendChild(el('span', 'chosen-label', t('bird.chosen')));
+      txt.appendChild(el('span', 'chosen-name', I18N.speciesName(d.species)));
+      chosen.appendChild(txt);
+    }
+
+    function pick(id) {
+      d.species = id;
+      $$('.species-btn', box).forEach(function (b) {
+        b.setAttribute('aria-pressed', String(b.dataset.sp === id));
+      });
+      if (id !== 'other') d.otherName = '';
+      otherField.hidden = (id !== 'other');
+      otherInput.value = d.otherName;
+      drawChosen();
+    }
+
+    function speciesButton(sp, wide) {
+      var b = el('button', 'species-btn' + (wide ? ' species-btn-wide' : ''));
       b.type = 'button';
+      b.dataset.sp = sp.id;
       b.setAttribute('aria-pressed', String(d.species === sp.id));
       b.innerHTML = birdIconHTML(sp.id, 44);
       b.appendChild(el('span', null, I18N.speciesName(sp.id)));
-      b.addEventListener('click', function () { d.species = sp.id; refreshScreen(); });
-      grid.appendChild(b);
-    });
-    box.appendChild(grid);
-
-    if (d.species === 'other') {
-      var lbl = el('h3', 'q-sub', t('bird.otherName'));
-      box.appendChild(lbl);
-      var inp = el('input', 'input');
-      inp.type = 'text'; inp.value = d.otherName;
-      inp.addEventListener('input', function () { d.otherName = this.value; });
-      box.appendChild(inp);
+      b.addEventListener('click', function () { pick(sp.id); });
+      return b;
     }
+
+    function speciesGrid(list) {
+      var g = el('div', 'species-grid');
+      list.forEach(function (sp) { g.appendChild(speciesButton(sp)); });
+      return g;
+    }
+
+    /* ---------- searching by name ---------- */
+
+    var searchWrap = el('div', 'search-wrap');
+    var search = el('input', 'input');
+    search.type = 'search';
+    search.autocomplete = 'off';
+    search.placeholder = t('bird.searchPh');
+    search.setAttribute('aria-label', t('bird.search'));
+    searchWrap.appendChild(search);
+    var clearBtn = el('button', 'search-clear', '✕');
+    clearBtn.type = 'button';
+    clearBtn.hidden = true;
+    clearBtn.setAttribute('aria-label', t('bird.clearSearch'));
+    searchWrap.appendChild(clearBtn);
+    box.appendChild(searchWrap);
+
+    var results = el('div');
+    results.hidden = true;
+    box.appendChild(results);
+
+    /* ---------- the birds, in groups ---------- */
+
+    var groups = el('div');
+    box.appendChild(groups);
+
+    /* a group that is simply there, no opening needed */
+    function plainGroup(titleText, list) {
+      var sec = el('section', 'species-group species-group-plain');
+      sec.style.borderTop = '0';
+      sec.appendChild(el('h4', 'section-title', titleText));
+      sec.appendChild(speciesGrid(list));
+      return sec;
+    }
+
+    /* a group that is folded away until it is tapped */
+    function foldedGroup(titleText, list) {
+      var det = el('details', 'species-group');
+      var sum = el('summary');
+      sum.appendChild(el('span', null, titleText));
+      sum.appendChild(el('span', 'grp-count', t('bird.moreCount', { n: list.length })));
+      det.appendChild(sum);
+      det.appendChild(speciesGrid(list));
+      return det;
+    }
+
+    var already = recentSpecies(8);
+    if (already.length) groups.appendChild(plainGroup(t('grp.recent'), already));
+    groups.appendChild(plainGroup(t('grp.common'), I18N.speciesInGroup('common')));
+    ['nest', 'specht', 'garden', 'big', 'water', 'other'].forEach(function (g) {
+      var list = I18N.speciesInGroup(g);
+      if (list.length) groups.appendChild(foldedGroup(t('grp.' + g), list));
+    });
+
+    /* "another bird" is always on show, whatever is being searched for */
+    var otherDef = I18N.speciesDef('other');
+    var otherGrid = el('div', 'species-grid');
+    otherGrid.style.marginTop = '14px';
+    otherGrid.appendChild(speciesButton(otherDef, true));
+    box.appendChild(otherGrid);
+
+    function runSearch() {
+      var q = search.value.trim();
+      clearBtn.hidden = !q;
+      if (!q) {
+        results.hidden = true;
+        results.innerHTML = '';
+        groups.hidden = false;
+        return;
+      }
+      groups.hidden = true;
+      results.hidden = false;
+      results.innerHTML = '';
+      var found = I18N.speciesSearch(q);
+      if (found.length) results.appendChild(speciesGrid(found));
+      else results.appendChild(el('p', 'no-match', t('bird.noMatch')));
+    }
+    search.addEventListener('input', runSearch);
+    clearBtn.addEventListener('click', function () { search.value = ''; runSearch(); search.focus(); });
+
+    /* ---------- the name, when it was not on the list ---------- */
+
+    var otherField = el('div');
+    otherField.hidden = true;
+    otherField.appendChild(el('h3', 'q-sub', t('bird.otherName')));
+    var otherInput = el('input', 'input');
+    otherInput.type = 'text';
+    otherInput.value = d.otherName;
+    otherInput.addEventListener('input', function () { d.otherName = this.value; });
+    otherField.appendChild(otherInput);
+    box.appendChild(otherField);
+
+    drawChosen();
+    if (d.species) pick(d.species);
+
+    /* ---------- when ---------- */
 
     box.appendChild(el('h3', 'q-sub', t('bird.month')));
     var months = el('div', 'month-grid');
@@ -765,28 +915,30 @@
         b.type = 'button';
         b.setAttribute('aria-pressed', String(d.month === mm));
         b.setAttribute('aria-label', monthName(mm));
-        b.addEventListener('click', function () { d.month = mm; refreshScreen(); });
+        b.addEventListener('click', function () { d.month = mm; pressOnly(months, b); });
         months.appendChild(b);
       })(m);
     }
     box.appendChild(months);
 
     box.appendChild(el('h3', 'q-sub', t('bird.year')));
-    box.appendChild(yearPicker(d.year, function (y) { d.year = y; refreshScreen(); }));
+    box.appendChild(yearPicker(d.year, function (y) { d.year = y; }));
+
+    /* ---------- what it was doing ---------- */
 
     box.appendChild(el('h3', 'q-sub', t('bird.status')));
     var st = el('div', 'choice-grid');
-    ['nesting', 'visiting', 'roosting'].forEach(function (s) {
+    ['nesting', 'visiting', 'roosting'].forEach(function (sKey) {
       var b = el('button', 'choice');
       b.type = 'button';
-      b.setAttribute('aria-pressed', String(d.status === s));
-      b.appendChild(el('span', 'choice-icon', STATUS_EMOJI[s]));
+      b.setAttribute('aria-pressed', String(d.status === sKey));
+      b.appendChild(el('span', 'choice-icon', STATUS_EMOJI[sKey]));
       var txt = el('span');
-      txt.appendChild(document.createTextNode(t('bird.' + s)));
-      txt.appendChild(el('span', 'choice-sub', t('bird.' + s + '.sub')));
+      txt.appendChild(document.createTextNode(t('bird.' + sKey)));
+      txt.appendChild(el('span', 'choice-sub', t('bird.' + sKey + '.sub')));
       b.appendChild(txt);
       b.appendChild(el('span', 'tick', '✓'));
-      b.addEventListener('click', function () { d.status = s; refreshScreen(); });
+      b.addEventListener('click', function () { d.status = sKey; pressOnly(st, b); });
       st.appendChild(b);
     });
     box.appendChild(st);
@@ -797,11 +949,17 @@
     notes.addEventListener('input', function () { d.notes = this.value; });
     box.appendChild(notes);
 
+    /* ---------- save, always within reach ---------- */
+
+    var saveBar = el('div', 'sticky-save');
     var save = el('button', 'btn btn-big btn-primary', t('bird.saveIt'));
     save.type = 'button';
-    save.style.marginTop = '20px';
     save.addEventListener('click', function () {
-      if (!d.species) { toast(t('bird.pickSpecies')); return; }
+      if (!d.species) {
+        toast(t('bird.pickSpecies'));
+        chosen.scrollIntoView({ block: 'center' });
+        return;
+      }
       Store.addSighting({
         houseId: houseId, species: d.species, otherName: d.otherName,
         year: d.year, month: d.month, status: d.status, notes: d.notes
@@ -810,7 +968,9 @@
       toast(t('toast.saved'));
       setTimeout(refreshScreen, 30);
     });
-    box.appendChild(save);
+    saveBar.appendChild(save);
+    box.appendChild(saveBar);
+
     return box;
   }
 
@@ -822,9 +982,20 @@
     var plus = el('button', 'step-btn', '+');
     plus.type = 'button'; plus.setAttribute('aria-label', '+1');
     var thisYear = new Date().getFullYear();
-    minus.addEventListener('click', function () { onChange(Math.max(1950, value - 1)); });
-    plus.addEventListener('click', function () { onChange(Math.min(thisYear, value + 1)); });
-    if (value >= thisYear) plus.disabled = true;
+    var current = value;
+
+    function set(v) {
+      current = Math.min(thisYear, Math.max(1950, v));
+      yr.textContent = String(current);
+      minus.disabled = current <= 1950;
+      plus.disabled = current >= thisYear;
+      onChange(current);
+    }
+    minus.addEventListener('click', function () { set(current - 1); });
+    plus.addEventListener('click', function () { set(current + 1); });
+    minus.disabled = current <= 1950;
+    plus.disabled = current >= thisYear;
+
     wrap.appendChild(minus); wrap.appendChild(yr); wrap.appendChild(plus);
     return wrap;
   }
@@ -850,7 +1021,7 @@
       b.appendChild(el('span', 'choice-icon', MAINT_EMOJI[k]));
       b.appendChild(el('span', null, t('maint.' + k)));
       b.appendChild(el('span', 'tick', '✓'));
-      b.addEventListener('click', function () { d.kind = k; refreshScreen(); });
+      b.addEventListener('click', function () { d.kind = k; pressOnly(kinds, b); });
       kinds.appendChild(b);
     });
     box.appendChild(kinds);
@@ -862,9 +1033,7 @@
     box.appendChild(date);
 
     box.appendChild(el('h3', 'q-sub', t('maint.newCondition')));
-    var conds = el('div', 'choice-grid');
-    conds.appendChild(conditionChoices(d.condition, function (c) { d.condition = c; refreshScreen(); }));
-    box.appendChild(conds);
+    box.appendChild(conditionChoices(d.condition, function (c) { d.condition = c; }));
 
     box.appendChild(el('h3', 'q-sub', t('common.notes') + ' (' + t('common.optional') + ')'));
     var notes = el('textarea', 'textarea');
@@ -927,12 +1096,7 @@
     box.appendChild(field('house.placed', placed));
 
     box.appendChild(el('h3', 'q-sub', t('house.condition')));
-    var cg = el('div', 'choice-grid');
-    cg.appendChild(conditionChoices(d.condition, function (c) {
-      d.condition = c;
-      $$('.choice', cg).forEach(function (b, i) { b.setAttribute('aria-pressed', String(Store.CONDITIONS[i] === c)); });
-    }));
-    box.appendChild(cg);
+    box.appendChild(conditionChoices(d.condition, function (c) { d.condition = c; }));
 
     box.appendChild(el('h3', 'q-sub', t('common.notes')));
     var notes = el('textarea', 'textarea');
@@ -1173,7 +1337,9 @@
       tb.appendChild(tr);
     });
     table.appendChild(tb);
-    det.appendChild(table);
+    var scroller = el('div', 'table-scroll');
+    scroller.appendChild(table);
+    det.appendChild(scroller);
     return det;
   }
 
@@ -1208,7 +1374,7 @@
     /* language */
     box.appendChild(el('h3', 'section-title', t('settings.language')));
     var langs = el('div', 'choice-grid');
-    [['en', 'English', '🇬🇧'], ['pt', 'Português', '🇵🇹']].forEach(function (L) {
+    [['de', 'Deutsch', '🇩🇪'], ['en', 'English', '🇬🇧'], ['pt', 'Português', '🇵🇹']].forEach(function (L) {
       var b = el('button', 'choice');
       b.type = 'button';
       b.setAttribute('aria-pressed', String(I18N.lang === L[0]));
@@ -1219,6 +1385,28 @@
       langs.appendChild(b);
     });
     box.appendChild(langs);
+
+    /* text size — the single thing most often missing for older eyes */
+    var ts = el('section', 'section');
+    ts.appendChild(el('h3', 'section-title', t('settings.textSize')));
+    ts.appendChild(el('p', 'muted', t('settings.textSizeDesc')));
+    var sizes = el('div', 'choice-grid');
+    [['normal', 'settings.textNormal', '1rem'], ['big', 'settings.textBig', '1.5rem']].forEach(function (S) {
+      var b = el('button', 'choice');
+      b.type = 'button';
+      b.setAttribute('aria-pressed', String(currentTextSize() === S[0]));
+      var a = el('span', 'choice-icon', 'A');
+      a.style.fontSize = S[2];
+      a.style.fontWeight = '800';
+      a.style.textAlign = 'center';
+      b.appendChild(a);
+      b.appendChild(el('span', null, t(S[1])));
+      b.appendChild(el('span', 'tick', '✓'));
+      b.addEventListener('click', function () { setTextSize(S[0]); pressOnly(sizes, b); });
+      sizes.appendChild(b);
+    });
+    ts.appendChild(sizes);
+    box.appendChild(ts);
 
     /* backup */
     var bk = el('section', 'section');
@@ -1330,7 +1518,8 @@
         Photos.clear()
           .then(function () { return Photos.importAll(payload.photos || {}); })
           .then(function () {
-            if (Store.settings.lang) setLanguage(Store.settings.lang);
+            setTextSize(currentTextSize());
+            setLanguage(Store.settings.lang || 'de');
             refreshMarkers();
             renderHouseList();
             closeAllScreens();
@@ -1345,6 +1534,16 @@
   /* =========================================================
      LANGUAGE + BOOT
      ========================================================= */
+
+  function currentTextSize() {
+    return Store.settings.textSize === 'big' ? 'big' : 'normal';
+  }
+
+  function setTextSize(v) {
+    Store.settings.textSize = (v === 'big') ? 'big' : 'normal';
+    Store.save();
+    document.documentElement.setAttribute('data-text', Store.settings.textSize);
+  }
 
   function setLanguage(l) {
     I18N.set(l);
@@ -1361,24 +1560,13 @@
     refreshMarkers();
   }
 
-  $$('[data-setlang]').forEach(function (b) {
-    b.addEventListener('click', function () {
-      setLanguage(b.dataset.setlang);
-      $('#langGate').hidden = true;
-    });
-  });
-
   function boot() {
     Store.load();
 
-    var saved = Store.settings.lang;
-    if (!saved) {
-      var nav = (navigator.language || 'en').toLowerCase();
-      I18N.set(nav.indexOf('pt') === 0 ? 'pt' : 'en');
-      $('#langGate').hidden = false;
-    } else {
-      I18N.set(saved);
-    }
+    /* German is this app's own language. It starts in German every time,
+       with no question asked first; Settings can change it. */
+    I18N.set(Store.settings.lang || 'de');
+    document.documentElement.setAttribute('data-text', currentTextSize());
     I18N.applyTo(document);
     $('#wizDate').value = Store.todayISO();
     $('#btnLayer').querySelector('span').textContent =

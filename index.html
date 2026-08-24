@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="en" data-lang="en">
+<html lang="de" data-lang="de">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#15614a" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#101310" media="(prefers-color-scheme: dark)">
-<meta name="description" content="A simple app to map your bird houses, record which birds live in them, and keep track of repairs.">
-<title>My Bird Houses</title>
+<meta name="description" content="Eine einfache App, um Nistkästen auf der Karte einzutragen, die Vögel darin festzuhalten und Reinigung und Reparaturen im Blick zu behalten.">
+<title>Meine Nistkästen</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./assets/icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="./assets/icons/apple-touch-icon.png">
@@ -14,27 +14,16 @@
 </head>
 <body>
 
-<!-- ============ FIRST RUN: pick a language ============ -->
-<div id="langGate" class="gate" hidden>
-  <div class="gate-inner">
-    <img class="gate-logo" src="./assets/icons/icon.svg" alt="" width="96" height="96">
-    <h1 class="gate-title">My Bird Houses</h1>
-    <p class="gate-sub">Choose your language<br><span lang="pt">Escolha o seu idioma</span></p>
-    <div class="gate-choices">
-      <button class="btn btn-big" type="button" data-setlang="en">🇬🇧&nbsp; English</button>
-      <button class="btn btn-big" type="button" data-setlang="pt" lang="pt">🇵🇹&nbsp; Português</button>
-    </div>
-  </div>
-</div>
-
 <!-- ============ TOP BAR ============ -->
 <header class="topbar">
-  <h1 class="topbar-title" id="topbarTitle" data-i18n="app.name">My Bird Houses</h1>
-  <button class="icon-btn" type="button" id="btnHelp" data-i18n-aria="nav.help" aria-label="Help">
+  <h1 class="topbar-title" id="topbarTitle" data-i18n="app.name">Meine Nistkästen</h1>
+  <button class="icon-btn" type="button" id="btnHelp">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 16.2a1.2 1.2 0 1 1 0-2.4 1.2 1.2 0 0 1 0 2.4Zm1.7-6.1c-.7.5-.8.7-.8 1.2v.3h-1.8v-.5c0-1.2.4-1.8 1.4-2.5.7-.5.9-.8.9-1.3 0-.6-.5-1-1.3-1s-1.4.5-1.5 1.3H8.8C8.9 7.8 10.2 6.7 12 6.7c1.9 0 3.2 1 3.2 2.5 0 1-.4 1.6-1.5 2.4Z"/></svg>
+    <span class="icon-btn-label" data-i18n="nav.help">Hilfe</span>
   </button>
-  <button class="icon-btn" type="button" id="btnSettings" data-i18n-aria="nav.settings" aria-label="Settings">
+  <button class="icon-btn" type="button" id="btnSettings">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.5A3.5 3.5 0 1 0 12 15.5 3.5 3.5 0 0 0 12 8.5Zm8.6 4.7.1-1.2-.1-1.2 2-1.5-1.9-3.3-2.4.9a7.6 7.6 0 0 0-2-1.2L15.9 3h-3.8l-.4 2.7c-.7.3-1.4.7-2 1.2l-2.4-.9L5.4 9.3l2 1.5-.1 1.2.1 1.2-2 1.5 1.9 3.3 2.4-.9c.6.5 1.3.9 2 1.2l.4 2.7h3.8l.4-2.7c.7-.3 1.4-.7 2-1.2l2.4.9 1.9-3.3-2-1.5Z"/></svg>
+    <span class="icon-btn-label" data-i18n="nav.settings">Einstellungen</span>
   </button>
 </header>
 
@@ -42,19 +31,19 @@
 <main id="main">
 
   <!-- ---------- MAP ---------- -->
-  <section class="view" id="view-map" aria-label="Map">
+  <section class="view" id="view-map" aria-label="Karte">
     <div class="map-wrap">
       <div id="map" class="map"></div>
 
       <div class="map-controls">
-        <button class="map-btn" type="button" id="btnLocate" data-i18n-aria="map.locate" aria-label="Go to my location">
+        <button class="map-btn" type="button" id="btnLocate" data-i18n-aria="map.locate" aria-label="Zu meinem Standort">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm9 3h-2.1A7 7 0 0 0 13 5.1V3h-2v2.1A7 7 0 0 0 5.1 11H3v2h2.1A7 7 0 0 0 11 18.9V21h2v-2.1a7 7 0 0 0 5.9-5.9H21v-2Zm-9 6a5 5 0 1 1 0-10 5 5 0 0 1 0 10Z"/></svg>
         </button>
-        <button class="map-btn" type="button" id="btnFit" data-i18n-aria="map.fit" aria-label="Show all bird houses">
+        <button class="map-btn" type="button" id="btnFit" data-i18n-aria="map.fit" aria-label="Alle Nistkästen zeigen">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5v2H6v3H4Zm11-5h5v5h-2V6h-3V4ZM4 15h2v3h3v2H4v-5Zm14 0h2v5h-5v-2h3v-3Z"/></svg>
         </button>
         <button class="map-btn map-btn-wide" type="button" id="btnLayer">
-          <span data-i18n="map.satellite">Satellite</span>
+          <span data-i18n="map.satellite">Luftbild</span>
         </button>
       </div>
 
@@ -62,26 +51,26 @@
 
       <button class="fab" type="button" id="btnAddFromMap">
         <span class="fab-plus" aria-hidden="true">+</span>
-        <span data-i18n="map.addHere">Add a bird house</span>
+        <span data-i18n="map.addHere">Nistkasten eintragen</span>
       </button>
 
       <div class="map-empty" id="mapEmpty" hidden>
-        <p data-i18n="map.emptyTitle">No bird houses yet.</p>
-        <p class="muted" data-i18n="map.emptyHint">Tap the green button below to add your first one.</p>
+        <p data-i18n="map.emptyTitle">Noch keine Nistkästen.</p>
+        <p class="muted" data-i18n="map.emptyHint">Tippen Sie unten auf den grünen Knopf, um den ersten einzutragen.</p>
       </div>
     </div>
   </section>
 
   <!-- ---------- HOUSES ---------- -->
-  <section class="view" id="view-houses" aria-label="My bird houses">
+  <section class="view" id="view-houses" aria-label="Meine Nistkästen">
     <div class="pad">
       <div class="list-tools">
         <label class="field-inline">
-          <span class="label-sm" data-i18n="list.sortBy">Sort by</span>
+          <span class="label-sm" data-i18n="list.sortBy">Sortieren nach</span>
           <select id="sortBy" class="select">
             <option value="name" data-i18n="list.sortName">Name</option>
-            <option value="recent" data-i18n="list.sortRecent">Recently added</option>
-            <option value="condition" data-i18n="list.sortCondition">Needs attention first</option>
+            <option value="recent" data-i18n="list.sortRecent">Zuletzt eingetragen</option>
+            <option value="condition" data-i18n="list.sortCondition">Kümmern zuerst</option>
           </select>
         </label>
       </div>
@@ -90,7 +79,7 @@
   </section>
 
   <!-- ---------- ADD (wizard) ---------- -->
-  <section class="view" id="view-add" aria-label="Add a bird house">
+  <section class="view" id="view-add" aria-label="Nistkasten eintragen">
     <div id="wizard" class="wizard">
 
       <div class="steps" id="wizSteps" aria-hidden="true">
@@ -100,8 +89,8 @@
       <!-- step 1: place -->
       <div class="wiz-step" data-step="1">
         <div class="pad-tight">
-          <h2 class="q" data-i18n="wiz.q1">1. Where is the bird house?</h2>
-          <p class="q-help" data-i18n="wiz.q1help">Move the map until the pin sits on the right spot.</p>
+          <h2 class="q" data-i18n="wiz.q1">1. Wo hängt der Nistkasten?</h2>
+          <p class="q-help" data-i18n="wiz.q1help">Schieben Sie die Karte, bis die Nadel auf der richtigen Stelle steht.</p>
         </div>
         <div class="picker-wrap">
           <div id="pickMap" class="map"></div>
@@ -109,11 +98,11 @@
             <svg viewBox="0 0 32 44"><path d="M16 0C7.7 0 1 6.7 1 15c0 11 15 29 15 29s15-18 15-29c0-8.3-6.7-15-15-15Z"/><circle cx="16" cy="15" r="6"/></svg>
           </div>
           <div class="map-attribution" id="pickAttribution"></div>
-          <button class="map-btn pick-locate" type="button" id="btnPickLocate" data-i18n-aria="map.locate" aria-label="Go to my location">
+          <button class="map-btn pick-locate" type="button" id="btnPickLocate" data-i18n-aria="map.locate" aria-label="Zu meinem Standort">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm9 3h-2.1A7 7 0 0 0 13 5.1V3h-2v2.1A7 7 0 0 0 5.1 11H3v2h2.1A7 7 0 0 0 11 18.9V21h2v-2.1a7 7 0 0 0 5.9-5.9H21v-2Zm-9 6a5 5 0 1 1 0-10 5 5 0 0 1 0 10Z"/></svg>
           </button>
           <button class="btn btn-ghost btn-locate-wide" type="button" id="btnPickLocate2">
-            <span data-i18n="wiz.useMyLocation">Use my location</span>
+            <span data-i18n="wiz.useMyLocation">Meinen Standort verwenden</span>
           </button>
         </div>
       </div>
@@ -121,12 +110,12 @@
       <!-- step 2: photo -->
       <div class="wiz-step" data-step="2" hidden>
         <div class="pad">
-          <h2 class="q" data-i18n="wiz.q2">2. Take a photo of the tree</h2>
-          <p class="q-help" data-i18n="wiz.q2help">This helps you find the bird house again. You can skip this and add photos later.</p>
+          <h2 class="q" data-i18n="wiz.q2">2. Machen Sie ein Foto vom Baum</h2>
+          <p class="q-help" data-i18n="wiz.q2help">So finden Sie den Nistkasten leichter wieder. Sie können das überspringen und später Fotos machen.</p>
           <div id="wizPhotos" class="photo-strip"></div>
           <label class="btn btn-big btn-photo">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3 7.2 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.2L15 3H9Zm3 5.5a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11Zm0 2a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/></svg>
-            <span data-i18n="wiz.takePhoto">Take a photo</span>
+            <span data-i18n="wiz.takePhoto">Foto machen</span>
             <input type="file" accept="image/*" capture="environment" id="wizPhotoInput" multiple hidden>
           </label>
         </div>
@@ -135,18 +124,18 @@
       <!-- step 3: details -->
       <div class="wiz-step" data-step="3" hidden>
         <div class="pad">
-          <h2 class="q" data-i18n="wiz.q3">3. Give it a name</h2>
-          <p class="q-help" data-i18n="wiz.q3help">Something you will recognise, like "Big oak by the gate".</p>
-          <input type="text" id="wizName" class="input input-big" autocomplete="off" data-i18n-ph="wiz.namePlaceholder" placeholder="Big oak by the gate">
+          <h2 class="q" data-i18n="wiz.q3">3. Geben Sie ihm einen Namen</h2>
+          <p class="q-help" data-i18n="wiz.q3help">Etwas, das Sie wiedererkennen, zum Beispiel „Große Eiche am Tor“.</p>
+          <input type="text" id="wizName" class="input input-big" autocomplete="off" data-i18n-ph="wiz.namePlaceholder" placeholder="Große Eiche am Tor">
           <div class="chip-row" id="wizNameSuggestions"></div>
 
-          <h3 class="q-sub" data-i18n="wiz.treeKind">What kind of tree is it on?</h3>
-          <input type="text" id="wizTree" class="input" autocomplete="off" data-i18n-ph="wiz.treeKindPlaceholder" placeholder="Oak, pine, apple tree…">
+          <h3 class="q-sub" data-i18n="wiz.treeKind">An welchem Baum hängt er?</h3>
+          <input type="text" id="wizTree" class="input" autocomplete="off" data-i18n-ph="wiz.treeKindPlaceholder" placeholder="Eiche, Kiefer, Apfelbaum …">
 
-          <h3 class="q-sub" data-i18n="wiz.condition">How is the bird house right now?</h3>
-          <div class="choice-grid" id="wizCondition"></div>
+          <h3 class="q-sub" data-i18n="wiz.condition">Wie ist der Nistkasten gerade in Schuss?</h3>
+          <div id="wizCondition"></div>
 
-          <h3 class="q-sub" data-i18n="wiz.putUp">When did you put it up?</h3>
+          <h3 class="q-sub" data-i18n="wiz.putUp">Wann haben Sie ihn aufgehängt?</h3>
           <input type="date" id="wizDate" class="input">
         </div>
       </div>
@@ -157,46 +146,46 @@
           <div class="big-check" aria-hidden="true">
             <svg viewBox="0 0 24 24"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z"/></svg>
           </div>
-          <h2 class="q" data-i18n="wiz.savedTitle">Saved!</h2>
+          <h2 class="q" data-i18n="wiz.savedTitle">Gespeichert!</h2>
           <p class="q-help" id="wizDoneName"></p>
           <div class="stack">
-            <button class="btn btn-big btn-primary" type="button" id="btnDoneSeeHouse" data-i18n="wiz.openHouse">Open this bird house</button>
-            <button class="btn btn-big" type="button" id="btnDoneAnother" data-i18n="wiz.addAnother">Add another one</button>
+            <button class="btn btn-big btn-primary" type="button" id="btnDoneSeeHouse" data-i18n="wiz.openHouse">Diesen Nistkasten öffnen</button>
+            <button class="btn btn-big" type="button" id="btnDoneAnother" data-i18n="wiz.addAnother">Noch einen eintragen</button>
           </div>
         </div>
       </div>
 
       <div class="wiz-nav" id="wizNav">
-        <button class="btn btn-big btn-back" type="button" id="wizBack" data-i18n="common.back">Back</button>
-        <button class="btn btn-big btn-primary btn-next" type="button" id="wizNext" data-i18n="common.next">Next</button>
+        <button class="btn btn-big btn-back" type="button" id="wizBack" data-i18n="common.back">Zurück</button>
+        <button class="btn btn-big btn-primary btn-next" type="button" id="wizNext" data-i18n="common.next">Weiter</button>
       </div>
     </div>
   </section>
 
   <!-- ---------- STATS ---------- -->
-  <section class="view" id="view-stats" aria-label="Numbers">
+  <section class="view" id="view-stats" aria-label="Zahlen">
     <div class="pad" id="statsBody"></div>
   </section>
 
 </main>
 
 <!-- ============ BOTTOM TABS ============ -->
-<nav class="tabbar" id="tabbar" aria-label="Main">
+<nav class="tabbar" id="tabbar" aria-label="Hauptbereiche">
   <button class="tab" type="button" data-view="map" aria-current="page">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5.1 9 3 3.6 4.8a1 1 0 0 0-.6.9v14.6c0 .5.5.9 1 .7L9 19l6 2.1 5.4-1.8a1 1 0 0 0 .6-.9V3.8c0-.5-.5-.9-1-.7L15 5.1Zm-6 0 6 2.1v11.8L9 16.9V5.1Z"/></svg>
-    <span data-i18n="nav.map">Map</span>
+    <span data-i18n="nav.map">Karte</span>
   </button>
   <button class="tab" type="button" data-view="houses">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 2 10h3v11h5v-6h4v6h5V10h3L12 2Zm0 8.5a2 2 0 1 1 0 4 2 2 0 0 1 0-4Z"/></svg>
-    <span data-i18n="nav.houses">Houses</span>
+    <span data-i18n="nav.houses">Nistkästen</span>
   </button>
   <button class="tab tab-add" type="button" data-view="add">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6V5Z"/></svg>
-    <span data-i18n="nav.add">Add</span>
+    <span data-i18n="nav.add">Neu</span>
   </button>
   <button class="tab" type="button" data-view="stats">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10h4v10H4Zm6 0V4h4v16h-4Zm6 0v-7h4v7h-4Z"/></svg>
-    <span data-i18n="nav.stats">Numbers</span>
+    <span data-i18n="nav.stats">Zahlen</span>
   </button>
 </nav>
 
@@ -205,7 +194,7 @@
   <header class="topbar topbar-screen">
     <button class="icon-btn back-btn" type="button" id="screenBack">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.4 6.4 14 5l-7 7 7 7 1.4-1.4L9.8 12l5.6-5.6Z"/></svg>
-      <span data-i18n="common.back">Back</span>
+      <span data-i18n="common.back">Zurück</span>
     </button>
     <h2 class="topbar-title" id="screenTitle"></h2>
   </header>
@@ -214,7 +203,7 @@
 
 <!-- ============ PHOTO VIEWER ============ -->
 <div class="lightbox" id="lightbox" hidden>
-  <button class="lightbox-close" type="button" id="lightboxClose" data-i18n-aria="common.close" aria-label="Close">✕</button>
+  <button class="lightbox-close" type="button" id="lightboxClose" data-i18n-aria="common.close" aria-label="Schließen">✕</button>
   <img id="lightboxImg" alt="">
 </div>
 
@@ -226,8 +215,8 @@
   <div class="modal-card" role="alertdialog" aria-modal="true" aria-labelledby="confirmText">
     <p class="modal-text" id="confirmText"></p>
     <div class="modal-actions">
-      <button class="btn btn-big" type="button" id="confirmNo" data-i18n="common.cancel">Cancel</button>
-      <button class="btn btn-big btn-danger" type="button" id="confirmYes" data-i18n="common.delete">Delete</button>
+      <button class="btn btn-big" type="button" id="confirmNo" data-i18n="common.cancel">Abbrechen</button>
+      <button class="btn btn-big btn-danger" type="button" id="confirmYes" data-i18n="common.delete">Löschen</button>
     </div>
   </div>
 </div>
