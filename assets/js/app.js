@@ -27,6 +27,11 @@
     toastTimer = setTimeout(function () { box.hidden = true; }, 2800);
   }
 
+  /* localStorage on a full phone fails without a word; this is that word */
+  function toastSaved() {
+    toast(Store.saveFailed ? t('toast.storageFull') : t('toast.saved'));
+  }
+
   function confirmAsk(text, yesLabel) {
     return new Promise(function (resolve) {
       var box = $('#confirm');
@@ -77,9 +82,9 @@
   };
   var CONDITION_LABEL = { good: 'cond.good', repair: 'cond.repair', broken: 'cond.broken', unknown: 'cond.unknown' };
 
-  function conditionBadge(cond) {
+  function conditionBadge(cond, big) {
     var c = TONE[cond] ? cond : 'unknown';
-    var span = el('span', 'badge badge-' + TONE[c]);
+    var span = el('span', 'badge badge-' + TONE[c] + (big ? ' badge-lg' : ''));
     span.innerHTML = CONDITION_ICON[c];
     span.appendChild(document.createTextNode(t(CONDITION_LABEL[c])));
     return span;
@@ -113,6 +118,9 @@
       b.setAttribute('aria-pressed', String(b === chosen));
     });
   }
+
+  var CAMERA_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3 7.2 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.2L15 3H9Zm3 5.5a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11Zm0 2a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/></svg>';
+  var ALBUM_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 17V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2Zm-9.6-3.7 1.9 2.5 2.8-3.5 3.4 4.4H8.1l3.3-3.4ZM3 7v12a2 2 0 0 0 2 2h12v-2H5V7H3Z"/></svg>';
 
   function pinSVG() {
     return '<svg viewBox="0 0 32 44" aria-hidden="true">' +
@@ -171,11 +179,13 @@
       if (b.dataset.view === name) b.setAttribute('aria-current', 'page');
       else b.removeAttribute('aria-current');
     });
-    var titles = { map: 'app.name', houses: 'nav.houses', add: 'map.addHere', stats: 'stats.title' };
+    var titles = { map: 'app.name', houses: 'nav.houses', add: 'map.addHere',
+      gallery: 'gallery.title', stats: 'stats.title' };
     $('#topbarTitle').textContent = t(titles[name] || 'app.name');
 
     if (name === 'map') { ensureMainMap(); mainMap.render(); refreshMarkers(); }
     if (name === 'houses') renderHouseList();
+    if (name === 'gallery') renderGallery();
     if (name === 'stats') renderStats();
     if (name === 'add') startWizard();
     window.scrollTo(0, 0);
@@ -436,7 +446,9 @@
     wiz.photos.forEach(function (pid) {
       box.appendChild(photoThumb(pid, function () {
         wiz.photos = wiz.photos.filter(function (x) { return x !== pid; });
+        Store.removeFromGallery(pid);
         Photos.remove(pid);
+        updateGalleryBadge();
         renderWizPhotos();
         setWizStep(wiz.step);
       }));
@@ -500,6 +512,9 @@
         condition: wiz.condition, placedOn: $('#wizDate').value, photos: wiz.photos
       });
       wiz.houseId = h.id;
+      Store.detachFromGallery(wiz.photos);
+      updateGalleryBadge();
+      if (Store.saveFailed) toast(t('toast.storageFull'));
       $('#wizDoneName').textContent = t('wiz.savedAs', { name: h.name });
       setWizStep(4);
       refreshMarkers();
@@ -513,6 +528,217 @@
     openHouse(id);
   });
   $('#btnDoneAnother').addEventListener('click', function () { wiz = blankWiz(); startWizard(); });
+
+  /* =========================================================
+     PHOTOS — a shelf for pictures taken before it is decided
+     which bird house they belong to.
+     ========================================================= */
+
+  function updateGalleryBadge() {
+    var badge = $('#galleryBadge');
+    if (!badge) return;
+    var n = Store.data.gallery.length;
+    badge.textContent = n > 99 ? '99+' : String(n);
+    badge.hidden = !n;
+    /* read out as "Fotos — noch 2 Fotos ohne Nistkasten", not as "Fotos 2" */
+    var tab = $('#tabbar .tab[data-view="gallery"]');
+    if (!tab) return;
+    if (n) {
+      tab.setAttribute('aria-label', t('nav.gallery') + ' — ' +
+        (n === 1 ? t('gallery.waitCount1') : t('gallery.waitCount', { n: n })));
+    } else {
+      tab.removeAttribute('aria-label');
+    }
+  }
+
+  function photoCountLabel(n) {
+    return n === 1 ? t('gallery.photoCount1') : t('gallery.photoCount', { n: n });
+  }
+
+  /* one button opens the camera, the other the pictures already on the phone */
+  function photoPickButton(labelKey, iconSVG, useCamera, onAdded) {
+    var lab = el('label', 'btn btn-big btn-photo' + (useCamera ? ' btn-primary' : ''));
+    lab.innerHTML = iconSVG;
+    lab.appendChild(el('span', null, t(labelKey)));
+    var input = el('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    if (useCamera) input.capture = 'environment';
+    input.multiple = true;
+    input.hidden = true;
+    input.addEventListener('change', function () { handlePhotoInput(this, onAdded); });
+    lab.appendChild(input);
+    return lab;
+  }
+
+  function onGalleryPhoto(photoId) {
+    Store.addToGallery(photoId);
+    renderGallery();
+  }
+
+  function renderGallery() {
+    var box = $('#galleryBody');
+    box.innerHTML = '';
+    updateGalleryBadge();
+
+    box.appendChild(el('p', 'q-help gal-intro', t('gallery.intro')));
+
+    var actions = el('div', 'gal-actions');
+    actions.appendChild(photoPickButton('gallery.take', CAMERA_SVG, true, onGalleryPhoto));
+    actions.appendChild(photoPickButton('gallery.pick', ALBUM_SVG, false, onGalleryPhoto));
+    box.appendChild(actions);
+
+    /* ---- still waiting for a bird house ---- */
+    var waiting = Store.gallery();
+    if (waiting.length) {
+      var ws = el('section', 'section');
+      ws.appendChild(el('h3', 'section-title', t('gallery.waiting')));
+      ws.appendChild(el('p', 'muted', t('gallery.waitingHint')));
+      var list = el('div', 'gal-list');
+      waiting.forEach(function (g) { list.appendChild(galleryCard(g.id)); });
+      ws.appendChild(list);
+      box.appendChild(ws);
+    }
+
+    /* ---- already with a bird house, grouped by bird house ---- */
+    var withPhotos = Store.data.houses.filter(function (h) { return h.photos && h.photos.length; });
+
+    if (!waiting.length && withPhotos.length) {
+      var done = el('p', 'all-sorted', t('gallery.allSorted'));
+      box.appendChild(done);
+    }
+
+    if (withPhotos.length) {
+      withPhotos.sort(function (a, b) { return (a.name || '').localeCompare(b.name || '', I18N.locale()); });
+      var as = el('section', 'section');
+      as.appendChild(el('h3', 'section-title', t('gallery.assigned')));
+      as.appendChild(el('p', 'muted', t('gallery.tapPhoto')));
+      withPhotos.forEach(function (h) { as.appendChild(housePhotoGroup(h)); });
+      box.appendChild(as);
+    }
+
+    if (!waiting.length && !withPhotos.length) {
+      var e = el('div', 'empty');
+      e.appendChild(el('span', 'empty-emoji', '📷'));
+      e.appendChild(el('p', null, t('gallery.empty')));
+      box.appendChild(e);
+    }
+  }
+
+  /* one waiting photo, big, with its own two buttons underneath */
+  function galleryCard(pid) {
+    var card = el('div', 'gal-card');
+    var img = el('img', 'gal-photo');
+    img.alt = '';
+    Photos.url(pid).then(function (u) { if (u) img.src = u; });
+    img.addEventListener('click', function () { showPhoto(pid); });
+    card.appendChild(img);
+
+    var assign = el('button', 'btn btn-big btn-primary', t('gallery.assign'));
+    assign.type = 'button';
+    assign.addEventListener('click', function () { openAssignPhoto(pid); });
+    card.appendChild(assign);
+
+    var del = el('button', 'btn', t('gallery.deletePhoto'));
+    del.type = 'button';
+    del.addEventListener('click', function () {
+      confirmAsk(t('gallery.confirmDelete')).then(function (ok) {
+        if (!ok) return;
+        Store.removeFromGallery(pid);
+        Photos.remove(pid);
+        renderGallery();
+        toast(t('toast.deleted'));
+      });
+    });
+    card.appendChild(del);
+    return card;
+  }
+
+  function housePhotoGroup(h) {
+    var wrap = el('div', 'gal-house');
+    var head = el('button', 'gal-house-head');
+    head.type = 'button';
+    head.appendChild(el('span', 'gal-house-name', h.name || '—'));
+    head.appendChild(el('span', 'gal-house-count', photoCountLabel(h.photos.length)));
+    var chev = el('span', 'gal-chev', '›');
+    chev.setAttribute('aria-hidden', 'true');
+    head.appendChild(chev);
+    head.addEventListener('click', function () { openHouse(h.id); });
+    wrap.appendChild(head);
+
+    var strip = el('div', 'photo-strip');
+    h.photos.forEach(function (pid) { strip.appendChild(photoThumb(pid, null)); });
+    wrap.appendChild(strip);
+    return wrap;
+  }
+
+  /* ---------------- which bird house is this photo of? ---------------- */
+
+  function openAssignPhoto(pid) {
+    pushScreen({ title: t('gallery.assignTitle'), build: function () { return buildAssignPhoto(pid); } });
+  }
+
+  function buildAssignPhoto(pid) {
+    var box = frag();
+
+    var hero = el('img', 'hero-photo');
+    hero.alt = '';
+    Photos.url(pid).then(function (u) { if (u) hero.src = u; });
+    hero.addEventListener('click', function () { showPhoto(pid); });
+    box.appendChild(hero);
+
+    var houses = Store.data.houses.slice().sort(function (a, b) {
+      return (a.name || '').localeCompare(b.name || '', I18N.locale());
+    });
+
+    if (houses.length) {
+      var q = el('h3', 'q', t('gallery.assignHint'));
+      q.style.marginTop = '18px';
+      box.appendChild(q);
+      var list = el('div', 'card-list');
+      houses.forEach(function (h) {
+        var card = el('button', 'card');
+        card.type = 'button';
+        card.appendChild(houseThumb(h));
+        var body = el('div', 'card-body');
+        body.appendChild(el('h3', 'card-title', h.name || '—'));
+        body.appendChild(el('p', 'card-meta', h.tree || photoCountLabel((h.photos || []).length)));
+        card.appendChild(body);
+        card.addEventListener('click', function () {
+          Store.assignPhoto(pid, h.id);
+          popScreen();
+          toast(Store.saveFailed ? t('toast.storageFull') : t('gallery.addedTo', { name: h.name }));
+          renderGallery();
+          renderHouseList();
+        });
+        list.appendChild(card);
+      });
+      box.appendChild(list);
+    } else {
+      var none = el('p', 'q-help', t('gallery.noHouses'));
+      none.style.marginTop = '18px';
+      box.appendChild(none);
+    }
+
+    /* the tree in the photo may not be written down at all yet */
+    var stackEl = el('div', 'stack');
+    var nb = el('button', 'btn btn-big' + (houses.length ? '' : ' btn-primary'), t('gallery.newHouse'));
+    nb.type = 'button';
+    nb.addEventListener('click', function () { startWizardWithPhoto(pid); });
+    stackEl.appendChild(nb);
+    box.appendChild(stackEl);
+
+    return box;
+  }
+
+  /* The photo stays on the shelf until the bird house is really saved, so
+     a wizard broken off half way never loses it. */
+  function startWizardWithPhoto(pid) {
+    closeAllScreens();
+    wiz = blankWiz();
+    wiz.photos = [pid];
+    showView('add');
+  }
 
   /* =========================================================
      HOUSE DETAIL
@@ -539,49 +765,89 @@
       box.appendChild(hero);
     }
 
-    var badges = el('div', 'badge-row');
-    badges.appendChild(conditionBadge(h.condition));
-    box.appendChild(badges);
-
-    /* main actions */
-    var actions = el('div', 'stack');
-    actions.appendChild(bigAction('house.addBird', '🐦', function () { openBirdForm(h.id); }));
-    actions.appendChild(bigAction('house.addMaint', '🧰', function () { openMaintForm(h.id); }));
-    box.appendChild(actions);
-
-    /* facts */
-    var facts = el('section', 'section');
-    facts.appendChild(el('h3', 'section-title', t('house.details')));
-    var panel = el('dl', 'panel');
-    var last = Store.lastMaintenance(h.id);
-    [
-      [t('house.tree'), h.tree || '—'],
-      [t('house.placed'), fmtDate(h.placedOn)],
-      [t('house.lastCheck'), last ? fmtDate(last.date) : t('house.never')]
-    ].forEach(function (pair) {
-      var row = el('div', 'kv');
-      row.appendChild(el('dt', null, pair[0]));
-      row.appendChild(el('dd', null, pair[1]));
-      panel.appendChild(row);
-    });
-    facts.appendChild(panel);
-    if (h.notes) {
-      var np = el('div', 'panel');
-      np.style.marginTop = '10px';
-      np.appendChild(el('p', null, h.notes));
-      facts.appendChild(np);
+    /* ---------- 1. how the box is doing, and what has been done to it ---------- */
+    var care = sectionCard('care', '🔧', t('house.careSection'));
+    var statusLine = el('div', 'status-line');
+    statusLine.appendChild(conditionBadge(h.condition, true));
+    care.body.appendChild(statusLine);
+    /* needing attention while the box itself is fine means: not seen to for a year */
+    var cond = TONE[h.condition] ? h.condition : 'unknown';
+    var overdue = Store.needsAttention(h) && cond !== 'repair' && cond !== 'broken';
+    /* "nothing to do" next to "not cleaned for over a year" would contradict
+       itself, so an overdue good box is told only the one thing that matters */
+    if (!(overdue && cond === 'good')) {
+      care.body.appendChild(el('p', 'status-what', t('care.' + cond)));
     }
-    box.appendChild(facts);
+    if (overdue) care.body.appendChild(el('p', 'care-note', t('care.overdue')));
 
-    /* photos */
+    var last = Store.lastMaintenance(h.id);
+    var careFacts = el('dl', 'kv-list');
+    kvRow(careFacts, t('house.lastCheck'), last ? fmtDate(last.date) : t('house.never'));
+    care.body.appendChild(careFacts);
+
+    var careAct = el('div', 'stack');
+    careAct.appendChild(bigAction('house.addMaint', '🧰', function () { openMaintForm(h.id); }));
+    care.body.appendChild(careAct);
+
+    var jobs = Store.maintenanceFor(h.id);
+    if (jobs.length) {
+      care.body.appendChild(el('h4', 'sub-title', t('house.maintHistory')));
+      var mtl = el('div', 'timeline');
+      jobs.forEach(function (m) { mtl.appendChild(maintItem(m, h.id)); });
+      care.body.appendChild(mtl);
+    } else {
+      var noMaint = el('p', 'muted', t('house.noMaint'));
+      noMaint.style.margin = '16px 0 0';
+      care.body.appendChild(noMaint);
+    }
+    box.appendChild(care.el);
+
+    /* ---------- 2. the birds living in it ---------- */
+    var birds = sectionCard('birds', '🐦', t('house.birdSection'));
+    var sights = Store.sightingsFor(h.id);
+    var thisYear = new Date().getFullYear();
+    var seen = {};
+    sights.forEach(function (s) {
+      if (s.year === thisYear) seen[s.otherName || I18N.speciesName(s.species)] = true;
+    });
+    var seenNames = Object.keys(seen);
+    if (seenNames.length) {
+      birds.body.appendChild(el('p', 'status-what', t('house.thisYearBirds', { names: seenNames.join(', ') })));
+    } else if (!sights.length) {
+      birds.body.appendChild(el('p', 'muted', t('house.noBirds')));
+    }
+
+    var birdAct = el('div', 'stack');
+    birdAct.appendChild(bigAction('house.addBird', '🐦', function () { openBirdForm(h.id); }));
+    birds.body.appendChild(birdAct);
+
+    if (sights.length) {
+      birds.body.appendChild(el('h4', 'sub-title', t('house.birds')));
+      var tl = el('div', 'timeline');
+      var currentYear = null;
+      sights.forEach(function (s) {
+        if (s.year !== currentYear) {
+          currentYear = s.year;
+          var yh = el('h5', 'sub-title', String(currentYear));
+          yh.style.margin = '14px 0 6px';
+          tl.appendChild(yh);
+        }
+        tl.appendChild(sightingItem(s, h.id));
+      });
+      birds.body.appendChild(tl);
+    }
+    box.appendChild(birds.el);
+
+    /* ---------- 3. photos of the tree ---------- */
     var ps = el('section', 'section');
     ps.appendChild(el('h3', 'section-title', t('house.photos')));
     var strip = el('div', 'photo-strip');
     h.photos.forEach(function (pid) {
       strip.appendChild(photoThumb(pid, function () {
-        confirmAsk(t('common.remove') + '?', t('common.remove')).then(function (ok) {
+        confirmAsk(t('gallery.confirmDelete'), t('common.delete')).then(function (ok) {
           if (!ok) return;
-          Store.updateHouse(h.id, { photos: h.photos.filter(function (x) { return x !== pid; }) });
+          var cur = Store.house(h.id);
+          Store.updateHouse(h.id, { photos: cur.photos.filter(function (x) { return x !== pid; }) });
           Photos.remove(pid);
           refreshScreen();
         });
@@ -589,7 +855,7 @@
     });
     ps.appendChild(strip);
     var addLabel = el('label', 'btn btn-big btn-photo');
-    addLabel.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3 7.2 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.2L15 3H9Zm3 5.5a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11Zm0 2a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/></svg>';
+    addLabel.innerHTML = CAMERA_SVG;
     addLabel.appendChild(el('span', null, t('house.addPhoto')));
     var addInput = el('input');
     addInput.type = 'file'; addInput.accept = 'image/*'; addInput.capture = 'environment';
@@ -605,38 +871,20 @@
     ps.appendChild(addLabel);
     box.appendChild(ps);
 
-    /* birds */
-    var bs = el('section', 'section');
-    bs.appendChild(el('h3', 'section-title', t('house.birds')));
-    var sights = Store.sightingsFor(h.id);
-    if (!sights.length) bs.appendChild(el('p', 'muted', t('house.noBirds')));
-    else {
-      var tl = el('div', 'timeline');
-      var currentYear = null;
-      sights.forEach(function (s) {
-        if (s.year !== currentYear) {
-          currentYear = s.year;
-          var yh = el('h4', 'section-title', String(currentYear));
-          yh.style.margin = '10px 0 0';
-          tl.appendChild(yh);
-        }
-        tl.appendChild(sightingItem(s, h.id));
-      });
-      bs.appendChild(tl);
+    /* ---------- 4. the plain facts ---------- */
+    var facts = el('section', 'section');
+    facts.appendChild(el('h3', 'section-title', t('house.details')));
+    var panel = el('dl', 'panel');
+    kvRow(panel, t('house.tree'), h.tree || '—');
+    kvRow(panel, t('house.placed'), fmtDate(h.placedOn));
+    facts.appendChild(panel);
+    if (h.notes) {
+      var np = el('div', 'panel');
+      np.style.marginTop = '10px';
+      np.appendChild(el('p', null, h.notes));
+      facts.appendChild(np);
     }
-    box.appendChild(bs);
-
-    /* maintenance */
-    var ms = el('section', 'section');
-    ms.appendChild(el('h3', 'section-title', t('house.maintenance')));
-    var jobs = Store.maintenanceFor(h.id);
-    if (!jobs.length) ms.appendChild(el('p', 'muted', t('house.noMaint')));
-    else {
-      var mtl = el('div', 'timeline');
-      jobs.forEach(function (m) { mtl.appendChild(maintItem(m, h.id)); });
-      ms.appendChild(mtl);
-    }
-    box.appendChild(ms);
+    box.appendChild(facts);
 
     /* footer actions */
     var foot = el('section', 'section');
@@ -673,6 +921,29 @@
     box.appendChild(foot);
 
     return box;
+  }
+
+  /* One subject, in its own bordered card with a coloured heading: the
+     condition of the box and the birds in it are two different things. */
+  function sectionCard(kind, emoji, title) {
+    var sec = el('section', 'section-card section-card-' + kind);
+    var head = el('div', 'section-head');
+    var em = el('span', 'section-emoji', emoji);
+    em.setAttribute('aria-hidden', 'true');
+    head.appendChild(em);
+    head.appendChild(el('h3', null, title));
+    sec.appendChild(head);
+    var body = el('div', 'section-body');
+    sec.appendChild(body);
+    return { el: sec, body: body };
+  }
+
+  function kvRow(parent, key, value) {
+    var row = el('div', 'kv');
+    row.appendChild(el('dt', null, key));
+    row.appendChild(el('dd', null, value));
+    parent.appendChild(row);
+    return row;
   }
 
   function bigAction(key, emoji, onClick) {
@@ -965,7 +1236,7 @@
         year: d.year, month: d.month, status: d.status, notes: d.notes
       });
       popScreen();
-      toast(t('toast.saved'));
+      toastSaved();
       setTimeout(refreshScreen, 30);
     });
     saveBar.appendChild(save);
@@ -1047,7 +1318,7 @@
     save.addEventListener('click', function () {
       Store.addMaintenance({ houseId: houseId, kind: d.kind, date: d.date, condition: d.condition, notes: d.notes });
       popScreen();
-      toast(t('toast.saved'));
+      toastSaved();
       refreshMarkers();
       setTimeout(refreshScreen, 30);
     });
@@ -1113,7 +1384,7 @@
       refreshMarkers();
       renderHouseList();
       popScreen();
-      toast(t('toast.saved'));
+      toastSaved();
       setTimeout(refreshScreen, 30);
     });
     stackEl.appendChild(save);
@@ -1159,7 +1430,7 @@
           Store.updateHouse(id, { lat: c.lat, lng: c.lng });
           refreshMarkers();
           popScreen();
-          toast(t('toast.saved'));
+          toastSaved();
         });
         box.appendChild(save);
         return box;
@@ -1356,7 +1627,7 @@
 
   function buildHelp() {
     var box = frag();
-    ['help.s1', 'help.s2', 'help.s3', 'help.s4', 'help.s5'].forEach(function (k, i) {
+    ['help.s1', 'help.s2', 'help.s6', 'help.s3', 'help.s4', 'help.s5'].forEach(function (k, i) {
       var row = el('div', 'help-step');
       row.appendChild(el('div', 'help-num', String(i + 1)));
       row.appendChild(el('p', null, t(k)));
@@ -1466,6 +1737,7 @@
         Photos.clear();
         refreshMarkers();
         renderHouseList();
+        updateGalleryBadge();
         closeAllScreens();
         toast(t('toast.cleared'));
       });
@@ -1479,6 +1751,9 @@
   function allPhotoIds() {
     var ids = [];
     Store.data.houses.forEach(function (h) { ids = ids.concat(h.photos || []); });
+    ids = ids.concat(Store.galleryIds());
+    /* a photo taken in a wizard that is still open belongs to nobody yet */
+    if (wiz && wiz.photos) ids = ids.concat(wiz.photos);
     return ids;
   }
 
@@ -1522,6 +1797,7 @@
             setLanguage(Store.settings.lang || 'de');
             refreshMarkers();
             renderHouseList();
+            updateGalleryBadge();
             closeAllScreens();
             toast(t('toast.restored'));
           });
@@ -1552,9 +1828,12 @@
     I18N.applyTo(document);
     $('#btnLayer').querySelector('span').textContent =
       (Store.settings.layer === 'satellite') ? t('map.streets') : t('map.satellite');
-    var titles = { map: 'app.name', houses: 'nav.houses', add: 'map.addHere', stats: 'stats.title' };
+    var titles = { map: 'app.name', houses: 'nav.houses', add: 'map.addHere',
+      gallery: 'gallery.title', stats: 'stats.title' };
     $('#topbarTitle').textContent = t(titles[currentView] || 'app.name');
+    updateGalleryBadge();
     if (currentView === 'houses') renderHouseList();
+    if (currentView === 'gallery') renderGallery();
     if (currentView === 'stats') renderStats();
     if (currentView === 'add') setWizStep(wiz ? wiz.step : 1);
     refreshMarkers();
@@ -1572,6 +1851,7 @@
     $('#btnLayer').querySelector('span').textContent =
       (Store.settings.layer === 'satellite') ? t('map.streets') : t('map.satellite');
 
+    updateGalleryBadge();
     showView('map');
 
     /* tidy away photos left behind by an interrupted "add a bird house" */
