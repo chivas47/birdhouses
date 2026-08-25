@@ -15,6 +15,7 @@
       houses: [],
       sightings: [],
       maintenance: [],
+      gallery: [],                 /* photos taken on a walk, no bird house yet */
       settings: { lang: null, textSize: 'normal', layer: 'streets', lastCenter: null }
     };
   };
@@ -33,6 +34,7 @@
         var parsed = JSON.parse(raw);
         data = Object.assign(empty(), parsed);
         data.settings = Object.assign(empty().settings, parsed.settings || {});
+        if (!Array.isArray(data.gallery)) data.gallery = [];
       }
     } catch (e) { data = empty(); }
     return data;
@@ -169,6 +171,51 @@
     return list.length ? list[0] : null;
   }
 
+  /* ---------------- the photo shelf ----------------
+     Photos taken out on a walk, before it is decided which bird house
+     they belong to. Each entry is only the photo id and when it arrived;
+     assigning one moves the id over into the bird house. */
+
+  function addToGallery(photoId) {
+    if (!photoId) return null;
+    var g = { id: photoId, addedAt: Date.now() };
+    data.gallery.push(g);
+    save();
+    return g;
+  }
+
+  /* newest first — the ones just taken are the ones being sorted out */
+  function gallery() {
+    return data.gallery.slice().sort(function (a, b) { return (b.addedAt || 0) - (a.addedAt || 0); });
+  }
+
+  function galleryIds() {
+    return data.gallery.map(function (g) { return g.id; });
+  }
+
+  function removeFromGallery(photoId) {
+    data.gallery = data.gallery.filter(function (g) { return g.id !== photoId; });
+    save();
+  }
+
+  /* takes several ids off the shelf at once, e.g. when a photo from the
+     shelf was used to start a whole new bird house */
+  function detachFromGallery(ids) {
+    var drop = {};
+    (ids || []).forEach(function (id) { drop[id] = true; });
+    data.gallery = data.gallery.filter(function (g) { return !drop[g.id]; });
+    save();
+  }
+
+  function assignPhoto(photoId, houseId) {
+    var h = house(houseId);
+    if (!h) return null;
+    if (h.photos.indexOf(photoId) < 0) h.photos.push(photoId);
+    data.gallery = data.gallery.filter(function (g) { return g.id !== photoId; });
+    save();
+    return h;
+  }
+
   /* ---------------- numbers ---------------- */
 
   function years() {
@@ -250,6 +297,7 @@
       houses: obj.houses || [],
       sightings: obj.sightings || [],
       maintenance: obj.maintenance || [],
+      gallery: Array.isArray(obj.gallery) ? obj.gallery : [],
       settings: Object.assign(empty().settings, obj.settings || {})
     });
     save();
@@ -266,6 +314,9 @@
     addHouse: addHouse, house: house, updateHouse: updateHouse, removeHouse: removeHouse,
     addSighting: addSighting, removeSighting: removeSighting, sightingsFor: sightingsFor,
     addMaintenance: addMaintenance, removeMaintenance: removeMaintenance,
+    addToGallery: addToGallery, gallery: gallery, galleryIds: galleryIds,
+    removeFromGallery: removeFromGallery, detachFromGallery: detachFromGallery,
+    assignPhoto: assignPhoto,
     maintenanceFor: maintenanceFor, lastMaintenance: lastMaintenance,
     needsAttention: needsAttention, years: years, stats: stats,
     exportData: exportData, importData: importData, clearAll: clearAll

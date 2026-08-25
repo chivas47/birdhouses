@@ -147,7 +147,7 @@ p { margin: 0 0 .8em; }
 /* ---------------- bottom tabs ---------------- */
 .tabbar {
   position: fixed; inset: auto 0 0 0; z-index: 45;
-  display: grid; grid-template-columns: repeat(4, 1fr);
+  display: grid; grid-template-columns: repeat(5, 1fr);
   background: var(--surface);
   border-top: 1px solid var(--line);
   padding-bottom: env(safe-area-inset-bottom);
@@ -158,9 +158,17 @@ p { margin: 0 0 .8em; }
   min-height: var(--tabbar-h);
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
   padding: 8px 2px; cursor: pointer;
+  position: relative;
 }
 .tab svg { width: 28px; height: 28px; fill: currentColor; }
-.tab span { font-size: .84rem; font-weight: 700; }
+.tab span { font-size: clamp(.6rem, 3.1vw, .84rem); font-weight: 700; white-space: nowrap; }
+/* how many photos are still waiting for a bird house */
+.tab .tab-badge {
+  position: absolute; top: 6px; left: 50%; margin-left: 4px;
+  min-width: 24px; height: 24px; padding: 0 6px; border-radius: 12px;
+  background: var(--brand); color: var(--brand-ink);
+  font-size: .72rem; font-weight: 800; line-height: 24px; text-align: center;
+}
 .tab[aria-current="page"] { color: var(--brand-text); }
 .tab[aria-current="page"] svg { transform: translateY(-1px); }
 .tab-add svg {
@@ -503,6 +511,40 @@ p { margin: 0 0 .8em; }
   display: block;
 }
 
+/* ---------------- the photo shelf ---------------- */
+
+/* one waiting photo: shown big, with its own button underneath, so there is
+   never any doubt about which photo is being sorted */
+.gal-list { display: grid; gap: 18px; margin-top: 12px; }
+.gal-card {
+  display: grid; gap: 10px;
+  padding: 12px; border: 2px solid var(--line); border-radius: var(--radius);
+  background: var(--surface);
+}
+.gal-photo {
+  width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block;
+  border-radius: 12px; background: var(--surface-2); cursor: pointer;
+}
+.gal-intro { margin: 0 0 14px; }
+.all-sorted {
+  margin: 0 0 4px; padding: 12px 14px; border-radius: var(--radius);
+  background: var(--good-bg); color: var(--good-ink); font-weight: 700;
+}
+.gal-actions { display: grid; gap: 12px; margin-bottom: 22px; }
+
+/* the bird houses that already have photos, one row each */
+.gal-house { margin-top: 18px; }
+.gal-house-head {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  min-height: var(--tap); padding: 10px 14px;
+  border: 2px solid var(--line); border-radius: var(--radius);
+  background: var(--surface); color: var(--ink);
+  font: inherit; font-weight: 700; font-size: 1rem; text-align: left; cursor: pointer;
+}
+.gal-house-head .gal-house-name { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+.gal-house-head .gal-house-count { font-size: .85rem; font-weight: 600; color: var(--ink-2); white-space: nowrap; }
+.gal-house-head .gal-chev { color: var(--ink-2); font-size: 1.3rem; }
+
 /* ---------------- detail screen ---------------- */
 .screen {
   position: fixed; inset: 0; z-index: 60;
@@ -518,10 +560,41 @@ p { margin: 0 0 .8em; }
   background: var(--surface); border: 2px solid var(--line);
   border-radius: var(--radius); padding: 14px;
 }
+.kv-list { margin: 12px 0 0; }
 .kv { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); }
 .kv:last-child { border-bottom: 0; }
 .kv dt { color: var(--ink-2); font-size: .95rem; }
 .kv dd { margin: 0; font-weight: 700; text-align: right; }
+/* Each of the two subjects — how the box is doing, and the birds in it —
+   gets its own bordered card with a coloured heading, so they read as two
+   separate things rather than one long page. */
+.section-card {
+  margin-top: 26px;
+  border: 2px solid var(--line); border-radius: var(--radius);
+  background: var(--surface); overflow: hidden;
+}
+.section-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px; border-bottom: 2px solid var(--line);
+  background: var(--surface-2);
+}
+.section-head h3 { margin: 0; font-size: 1.1rem; font-weight: 800; overflow-wrap: anywhere; }
+.section-emoji { font-size: 1.5rem; line-height: 1; flex: 0 0 auto; }
+.section-body { padding: 14px; }
+.section-body > .stack:first-child { margin-top: 0; }
+.section-card-care  .section-head { background: var(--warning-bg); color: var(--warning-ink); border-bottom-color: var(--warning); }
+.section-card-birds .section-head { background: var(--brand-soft);  color: var(--brand-text);  border-bottom-color: var(--brand); }
+.sub-title { font-size: 1rem; font-weight: 700; margin: 20px 0 8px; }
+
+.status-line { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.badge-lg { font-size: 1.05rem; padding: 8px 16px 8px 12px; }
+.badge-lg svg { width: 22px; height: 22px; }
+.status-what { margin: 10px 0 0; font-weight: 600; }
+.care-note {
+  margin: 12px 0 0; padding: 10px 12px; border-radius: 12px;
+  background: var(--warning-bg); color: var(--warning-ink); font-weight: 700;
+}
+
 .timeline { display: grid; gap: 10px; }
 .tl-item {
   display: flex; gap: 12px; align-items: flex-start;
@@ -623,6 +696,7 @@ details.table-toggle summary {
   .pad, .screen-body { max-width: 720px; margin: 0 auto; }
   .species-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .gal-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .fab { left: auto; right: 16px; width: 300px; }
   .wiz-nav { max-width: 720px; margin: 0 auto; }
 }

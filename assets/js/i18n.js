@@ -10,7 +10,8 @@
     de: {
       'app.name': 'Meine Nistkästen',
 
-      'nav.map': 'Karte', 'nav.houses': 'Nistkästen', 'nav.add': 'Neu', 'nav.stats': 'Zahlen',
+      'nav.map': 'Karte', 'nav.houses': 'Nistkästen', 'nav.add': 'Neu',
+      'nav.gallery': 'Fotos', 'nav.stats': 'Zahlen',
       'nav.help': 'Hilfe', 'nav.settings': 'Einstellungen',
 
       'common.back': 'Zurück', 'common.next': 'Weiter', 'common.save': 'Speichern',
@@ -77,6 +78,17 @@
       'house.moveHint': 'Schieben Sie die Karte, um die Nadel zu versetzen.',
       'house.moveTitle': 'Wo hängt er?',
 
+      'house.careSection': 'Zustand und Reparaturen',
+      'house.birdSection': 'Vögel in diesem Nistkasten',
+      'house.maintHistory': 'Das haben Sie schon gemacht',
+      'house.thisYearBirds': 'Dieses Jahr hier gesehen: {names}',
+
+      'care.good': 'Alles in Ordnung. Sie müssen nichts tun.',
+      'care.repair': 'Dieser Nistkasten braucht eine Reparatur.',
+      'care.broken': 'Dieser Nistkasten ist kaputt oder weg.',
+      'care.unknown': 'Schauen Sie bei Gelegenheit einmal nach.',
+      'care.overdue': 'Seit über einem Jahr nicht geputzt oder repariert.',
+
       'bird.title': 'Hier war ein Vogel',
       'bird.which': 'Welchen Vogel haben Sie gesehen?',
       'bird.pickSpecies': 'Wählen Sie bitte zuerst einen Vogel.',
@@ -104,6 +116,29 @@
       'grp.big': 'Große Vögel und Greifvögel',
       'grp.water': 'Wasservögel',
       'grp.other': 'Andere Gäste',
+
+      'gallery.title': 'Meine Fotos',
+      'gallery.intro': 'Fotografieren Sie unterwegs so viele Bäume, wie Sie möchten. Später sagen Sie in Ruhe, zu welchem Nistkasten jedes Foto gehört.',
+      'gallery.take': 'Fotos von Bäumen machen',
+      'gallery.pick': 'Fotos vom Telefon auswählen',
+      'gallery.waiting': 'Diese Fotos warten noch',
+      'gallery.waitingHint': 'Tippen Sie unter dem Foto auf den grünen Knopf und wählen Sie den passenden Nistkasten.',
+      'gallery.assign': 'Zu einem Nistkasten legen',
+      'gallery.assignTitle': 'Welcher Nistkasten?',
+      'gallery.assignHint': 'Tippen Sie auf den Nistkasten, zu dem dieses Foto gehört.',
+      'gallery.newHouse': 'Neuen Nistkasten mit diesem Foto eintragen',
+      'gallery.noHouses': 'Sie haben noch keinen Nistkasten. Tragen Sie mit diesem Foto den ersten ein.',
+      'gallery.assigned': 'Fotos Ihrer Nistkästen',
+      'gallery.tapPhoto': 'Tippen Sie auf ein Foto, um es groß zu sehen.',
+      'gallery.photoCount': '{n} Fotos',
+      'gallery.photoCount1': '1 Foto',
+      'gallery.empty': 'Noch keine Fotos.',
+      'gallery.allSorted': 'Alle Fotos sind bei ihrem Nistkasten. Nichts mehr zu tun.',
+      'gallery.deletePhoto': 'Dieses Foto löschen',
+      'gallery.confirmDelete': 'Dieses Foto löschen?',
+      'gallery.addedTo': 'Foto zu „{name}“ gelegt',
+      'gallery.waitCount': 'Noch {n} Fotos ohne Nistkasten',
+      'gallery.waitCount1': 'Noch 1 Foto ohne Nistkasten',
 
       'maint.title': 'Reinigung und Reparatur',
       'maint.what': 'Was haben Sie gemacht?',
@@ -161,6 +196,7 @@
       'help.s3': 'Wenn Sie einen Vogel sehen, öffnen Sie den Nistkasten und tippen auf „Ich habe hier einen Vogel gesehen“. Wählen Sie den Vogel und den Monat.',
       'help.s4': 'Nach dem Putzen oder Reparieren tippen Sie auf „Ich habe geputzt oder repariert“. Das Datum merkt sich die App für Sie.',
       'help.s5': 'Der Bereich „Zahlen“ rechnet alles für Sie aus: wie viele Nistkästen Sie haben, welche Vögel am häufigsten sind und welche Kästen Sie nachsehen sollten.',
+      'help.s6': 'Im Bereich „Fotos“ fotografieren Sie unterwegs so viele Bäume, wie Sie möchten. Zu Hause sagen Sie dann in Ruhe, zu welchem Nistkasten jedes Foto gehört.',
       'help.tip': 'Hinweis: Es wird nichts über das Internet verschickt. Alles bleibt auf diesem Telefon. Speichern Sie ab und zu in den Einstellungen eine Kopie.',
 
       'toast.saved': 'Gespeichert',
@@ -183,7 +219,8 @@
     en: {
       'app.name': 'My Nest Boxes',
 
-      'nav.map': 'Map', 'nav.houses': 'Boxes', 'nav.add': 'New', 'nav.stats': 'Numbers',
+      'nav.map': 'Map', 'nav.houses': 'Boxes', 'nav.add': 'New',
+      'nav.gallery': 'Photos', 'nav.stats': 'Numbers',
       'nav.help': 'Help', 'nav.settings': 'Settings',
 
       'common.back': 'Back', 'common.next': 'Next', 'common.save': 'Save',
@@ -250,6 +287,17 @@
       'house.moveHint': 'Move the map to change where the pin sits.',
       'house.moveTitle': 'Where is it?',
 
+      'house.careSection': 'Condition and repairs',
+      'house.birdSection': 'Birds in this nest box',
+      'house.maintHistory': 'What you have done so far',
+      'house.thisYearBirds': 'Seen here this year: {names}',
+
+      'care.good': 'Everything is fine. There is nothing to do.',
+      'care.repair': 'This nest box needs a repair.',
+      'care.broken': 'This nest box is broken or gone.',
+      'care.unknown': 'Have a look at it when you can.',
+      'care.overdue': 'Not cleaned or repaired for over a year.',
+
       'bird.title': 'A bird was here',
       'bird.which': 'Which bird did you see?',
       'bird.pickSpecies': 'Please choose a bird first.',
@@ -277,6 +325,29 @@
       'grp.big': 'Large birds and birds of prey',
       'grp.water': 'Water birds',
       'grp.other': 'Other guests',
+
+      'gallery.title': 'My photos',
+      'gallery.intro': 'Take photos of as many trees as you like while you are out. Later, in your own time, you say which nest box each photo belongs to.',
+      'gallery.take': 'Take photos of trees',
+      'gallery.pick': 'Choose photos from the phone',
+      'gallery.waiting': 'These photos are still waiting',
+      'gallery.waitingHint': 'Tap the green button under a photo and choose the nest box it belongs to.',
+      'gallery.assign': 'Put with a nest box',
+      'gallery.assignTitle': 'Which nest box?',
+      'gallery.assignHint': 'Tap the nest box this photo belongs to.',
+      'gallery.newHouse': 'Add a new nest box with this photo',
+      'gallery.noHouses': 'You have no nest boxes yet. Add your first one with this photo.',
+      'gallery.assigned': 'Photos of your nest boxes',
+      'gallery.tapPhoto': 'Tap a photo to see it big.',
+      'gallery.photoCount': '{n} photos',
+      'gallery.photoCount1': '1 photo',
+      'gallery.empty': 'No photos yet.',
+      'gallery.allSorted': 'Every photo is with its nest box. Nothing left to do.',
+      'gallery.deletePhoto': 'Delete this photo',
+      'gallery.confirmDelete': 'Delete this photo?',
+      'gallery.addedTo': 'Photo put with “{name}”',
+      'gallery.waitCount': '{n} photos still have no nest box',
+      'gallery.waitCount1': '1 photo still has no nest box',
 
       'maint.title': 'Cleaning and repairs',
       'maint.what': 'What did you do?',
@@ -334,6 +405,7 @@
       'help.s3': 'When you see a bird, open that nest box and tap “I saw a bird here”. Choose the bird and the month.',
       'help.s4': 'After cleaning or fixing a box, tap “I cleaned or repaired it”. The app remembers the date for you.',
       'help.s5': 'The “Numbers” tab counts everything for you: how many boxes you have, which birds are the most common, and which boxes need a look.',
+      'help.s6': 'In the “Photos” tab you can photograph as many trees as you like while you are out. At home you then say, in your own time, which nest box each photo belongs to.',
       'help.tip': 'Tip: nothing is sent over the internet. Everything stays on this phone. Save a copy now and then in Settings.',
 
       'toast.saved': 'Saved',
@@ -356,7 +428,8 @@
     pt: {
       'app.name': 'As Minhas Casinhas de Pássaros',
 
-      'nav.map': 'Mapa', 'nav.houses': 'Casinhas', 'nav.add': 'Nova', 'nav.stats': 'Contas',
+      'nav.map': 'Mapa', 'nav.houses': 'Casinhas', 'nav.add': 'Nova',
+      'nav.gallery': 'Fotos', 'nav.stats': 'Contas',
       'nav.help': 'Ajuda', 'nav.settings': 'Definições',
 
       'common.back': 'Voltar', 'common.next': 'Seguinte', 'common.save': 'Guardar',
@@ -423,6 +496,17 @@
       'house.moveHint': 'Mova o mapa para mudar o sítio do pino.',
       'house.moveTitle': 'Onde fica?',
 
+      'house.careSection': 'Estado e arranjos',
+      'house.birdSection': 'Pássaros nesta casinha',
+      'house.maintHistory': 'O que já fez',
+      'house.thisYearBirds': 'Vistos aqui este ano: {names}',
+
+      'care.good': 'Está tudo bem. Não é preciso fazer nada.',
+      'care.repair': 'Esta casinha precisa de um arranjo.',
+      'care.broken': 'Esta casinha está partida ou perdida.',
+      'care.unknown': 'Vá lá ver quando puder.',
+      'care.overdue': 'Não é limpa nem arranjada há mais de um ano.',
+
       'bird.title': 'Esteve aqui um pássaro',
       'bird.which': 'Que pássaro viu?',
       'bird.pickSpecies': 'Escolha primeiro um pássaro.',
@@ -450,6 +534,29 @@
       'grp.big': 'Pássaros grandes e aves de rapina',
       'grp.water': 'Aves de água',
       'grp.other': 'Outros visitantes',
+
+      'gallery.title': 'As minhas fotos',
+      'gallery.intro': 'Tire fotos a quantas árvores quiser quando anda por fora. Depois, com calma, diz a que casinha pertence cada foto.',
+      'gallery.take': 'Tirar fotos de árvores',
+      'gallery.pick': 'Escolher fotos do telemóvel',
+      'gallery.waiting': 'Estas fotos ainda estão à espera',
+      'gallery.waitingHint': 'Toque no botão verde por baixo da foto e escolha a casinha a que ela pertence.',
+      'gallery.assign': 'Juntar a uma casinha',
+      'gallery.assignTitle': 'Que casinha?',
+      'gallery.assignHint': 'Toque na casinha a que esta foto pertence.',
+      'gallery.newHouse': 'Juntar uma casinha nova com esta foto',
+      'gallery.noHouses': 'Ainda não tem casinhas. Junte a primeira com esta foto.',
+      'gallery.assigned': 'Fotos das suas casinhas',
+      'gallery.tapPhoto': 'Toque numa foto para a ver grande.',
+      'gallery.photoCount': '{n} fotos',
+      'gallery.photoCount1': '1 foto',
+      'gallery.empty': 'Ainda não há fotos.',
+      'gallery.allSorted': 'Todas as fotos já estão com a sua casinha. Não falta nada.',
+      'gallery.deletePhoto': 'Apagar esta foto',
+      'gallery.confirmDelete': 'Apagar esta foto?',
+      'gallery.addedTo': 'Foto juntada a “{name}”',
+      'gallery.waitCount': 'Ainda há {n} fotos sem casinha',
+      'gallery.waitCount1': 'Ainda há 1 foto sem casinha',
 
       'maint.title': 'Limpezas e arranjos',
       'maint.what': 'O que é que fez?',
@@ -507,6 +614,7 @@
       'help.s3': 'Quando vir um pássaro, abra essa casinha e toque em “Vi um pássaro aqui”. Escolha o pássaro e o mês.',
       'help.s4': 'Depois de limpar ou arranjar uma casinha, toque em “Limpei ou arranjei”. A aplicação guarda a data por si.',
       'help.s5': 'O separador “Contas” faz as contas por si: quantas casinhas tem, quais os pássaros mais comuns, e quais as casinhas que precisam de ser vistas.',
+      'help.s6': 'Na parte “Fotos” pode fotografar quantas árvores quiser quando anda por fora. Em casa diz depois, com calma, a que casinha pertence cada foto.',
       'help.tip': 'Nota: nada é enviado pela internet. Fica tudo neste telemóvel. Guarde uma cópia de vez em quando nas Definições.',
 
       'toast.saved': 'Guardado',

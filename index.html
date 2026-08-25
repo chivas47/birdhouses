@@ -162,6 +162,11 @@
     </div>
   </section>
 
+  <!-- ---------- PHOTOS (the shelf of pictures waiting for a nest box) ---------- -->
+  <section class="view" id="view-gallery" aria-label="Fotos">
+    <div class="pad" id="galleryBody"></div>
+  </section>
+
   <!-- ---------- STATS ---------- -->
   <section class="view" id="view-stats" aria-label="Zahlen">
     <div class="pad" id="statsBody"></div>
@@ -182,6 +187,11 @@
   <button class="tab tab-add" type="button" data-view="add">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6V5Z"/></svg>
     <span data-i18n="nav.add">Neu</span>
+  </button>
+  <button class="tab" type="button" data-view="gallery">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 17V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2Zm-9.6-3.7 1.9 2.5 2.8-3.5 3.4 4.4H8.1l3.3-3.4ZM3 7v12a2 2 0 0 0 2 2h12v-2H5V7H3Z"/></svg>
+    <span data-i18n="nav.gallery">Fotos</span>
+    <span class="tab-badge" id="galleryBadge" hidden></span>
   </button>
   <button class="tab" type="button" data-view="stats">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10h4v10H4Zm6 0V4h4v16h-4Zm6 0v-7h4v7h-4Z"/></svg>
